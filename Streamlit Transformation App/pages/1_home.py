@@ -3,7 +3,7 @@ import streamlit as st
 st.title("🏠 Home Page")
 
 # Display university logo
-st.image("C:/Users/Lenovo/Downloads/Streamlit Transformation App/images/PU_Logo.png", caption="University Logo", use_column_width=True)
+st.image("/workspaces/ImageTransformationsGroup4IEClass22023/Streamlit Transformation App/images/PU_Logo.png", caption="University Logo", use_column_width=True)
 
 st.write("""
 ## Project Overview
