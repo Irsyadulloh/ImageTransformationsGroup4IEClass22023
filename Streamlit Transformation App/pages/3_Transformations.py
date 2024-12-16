@@ -1,6 +1,5 @@
 import streamlit as st
-import cv2
-from PIL import Image
+from PIL import Image, ImageEnhance
 import numpy as np
 
 # Title and Description
@@ -11,29 +10,32 @@ st.write("Upload an image and adjust transformations using the sliders.")
 uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    img_array = np.array(image)
-
-    st.image(img_array, caption="Original Image", use_column_width=True)
+    st.image(image, caption="Original Image", use_column_width=True)
 
     # Brightness Slider
     brightness = st.slider("Adjust Brightness", -100, 100, 0)
-    adjusted = cv2.convertScaleAbs(img_array, alpha=1, beta=brightness)
-    st.image(adjusted, caption="Brightness Adjusted")
+    enhancer = ImageEnhance.Brightness(image)
+    bright_factor = 1 + (brightness / 100)
+    bright_image = enhancer.enhance(bright_factor)
+    st.image(bright_image, caption="Brightness Adjusted")
 
     # Rotation Slider
     angle = st.slider("Rotate Image (Degrees)", -180, 180, 0)
-    rows, cols = img_array.shape[:2]
-    M = cv2.getRotationMatrix2D((cols / 2, rows / 2), angle, 1)
-    rotated = cv2.warpAffine(adjusted, M, (cols, rows))
-    st.image(rotated, caption="Rotated Image")
+    rotated_image = bright_image.rotate(-angle, expand=True)
+    st.image(rotated_image, caption="Rotated Image")
 
     # Scaling Slider
     scale = st.slider("Scale Image", 0.1, 3.0, 1.0)
-    scaled = cv2.resize(rotated, None, fx=scale, fy=scale, interpolation=cv2.INTER_LINEAR)
-    st.image(scaled, caption="Scaled Image")
+    new_width = int(image.width * scale)
+    new_height = int(image.height * scale)
+    scaled_image = rotated_image.resize((new_width, new_height))
+    st.image(scaled_image, caption="Scaled Image")
 
-    # Skewing Example
+    # Skewing Example (Using Affine Transform with Numpy)
     skew = st.slider("Skew Factor", -0.5, 0.5, 0.0)
-    M = np.float32([[1, skew, 0], [skew, 1, 0]])
-    skewed = cv2.warpAffine(scaled, M, (cols, rows))
-    st.image(skewed, caption="Skewed Image")
+    width, height = scaled_image.size
+    skew_matrix = (1, skew, 0, skew, 1, 0)
+    skewed_image = scaled_image.transform(
+        (width, height), Image.AFFINE, skew_matrix, resample=Image.BICUBIC
+    )
+    st.image(skewed_image, caption="Skewed Image")
